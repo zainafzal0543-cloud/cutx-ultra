@@ -3,7 +3,7 @@
 // Rule-based heuristic intelligence system
 // Future-ready: swap analyzeWithAI() for API call
 // ─────────────────────────────────────────────
-
+ 
 import type { Project, CuttingItem, Sheet } from '@/types';
 import type {
   AISuggestion, OptimizationIntelligence,
@@ -12,35 +12,35 @@ import type {
 import { toMM } from '@/lib/utils/units';
 import { generateId } from '@/lib/utils';
 import { SHEET_PRESETS } from '@/lib/utils/presets';
-
+ 
 // ─── Main Analysis Entry Point ────────────────
-
+ 
 export async function analyzeProject(project: Project): Promise<OptimizationIntelligence> {
   const start = performance.now();
   const suggestions: AISuggestion[] = [];
   const impossibleParts: string[] = [];
   const groupingOpportunities: GroupingOpportunity[] = [];
-
+ 
   const sheet = project.sheets[0];
   const items = project.cuttingList;
   const result = project.optimizationResult;
   const unit = project.settings.unit;
-
+ 
   if (!sheet || !items.length) {
     return emptyIntelligence(performance.now() - start);
   }
-
+ 
   const sheetW = toMM(sheet.width, unit);
   const sheetH = toMM(sheet.height, unit);
   const sheetArea = sheetW * sheetH;
-
+ 
   // ── 1. Detect impossible parts ─────────────
   for (const item of items) {
     const iW = toMM(item.width, unit);
     const iH = toMM(item.height, unit);
     const fitsNormal = iW <= sheetW && iH <= sheetH;
     const fitsRotated = item.allowRotation && iH <= sheetW && iW <= sheetH;
-
+ 
     if (!fitsNormal && !fitsRotated) {
       impossibleParts.push(item.id);
       suggestions.push(makeSuggestion({
@@ -52,7 +52,7 @@ export async function analyzeProject(project: Project): Promise<OptimizationInte
       }));
     }
   }
-
+ 
   // ── 2. High-wastage warning ────────────────
   if (result) {
     if (result.overallEfficiency < 60) {
@@ -85,19 +85,19 @@ export async function analyzeProject(project: Project): Promise<OptimizationInte
       }));
     }
   }
-
+ 
   // ── 3. Sheet size recommendations ─────────
   const totalPartArea = items.reduce((sum, i) => {
     return sum + toMM(i.width, unit) * toMM(i.height, unit) * i.quantity;
   }, 0);
-
+ 
   // If parts barely fill the sheet (< 30%), suggest smaller sheet
   if (result && result.totalSheets === 1 && result.overallEfficiency < 30) {
     const betterPreset = SHEET_PRESETS.find(p => {
       const pArea = toMM(p.width, p.unit) * toMM(p.height, p.unit);
       return pArea >= totalPartArea * 1.2 && pArea < sheetArea * 0.7 && p.material === sheet.material;
     });
-
+ 
     if (betterPreset) {
       suggestions.push(makeSuggestion({
         category: 'sheet_size',
@@ -111,7 +111,7 @@ export async function analyzeProject(project: Project): Promise<OptimizationInte
       }));
     }
   }
-
+ 
   // If parts require many sheets of current size, suggest larger sheet
   if (result && result.totalSheets > 5) {
     const largerPreset = SHEET_PRESETS.find(p => {
@@ -133,7 +133,7 @@ export async function analyzeProject(project: Project): Promise<OptimizationInte
       }
     }
   }
-
+ 
   // ── 4. Rotation disabled warning ──────────
   const noRotation = items.filter(i => !i.allowRotation);
   if (noRotation.length > items.length * 0.5 && !project.settings.allowRotation) {
@@ -148,7 +148,7 @@ export async function analyzeProject(project: Project): Promise<OptimizationInte
       actionPayload: { enableRotation: true },
     }));
   }
-
+ 
   // ── 5. Grouping opportunities ──────────────
   const groups = findSimilarParts(items, unit);
   for (const group of groups) {
@@ -168,7 +168,7 @@ export async function analyzeProject(project: Project): Promise<OptimizationInte
       }
     }
   }
-
+ 
   // ── 6. Unplaced parts warning ──────────────
   if (result && result.unplacedItems.length > 0) {
     suggestions.push(makeSuggestion({
@@ -179,7 +179,7 @@ export async function analyzeProject(project: Project): Promise<OptimizationInte
       confidenceScore: 1.0,
     }));
   }
-
+ 
   // ── 7. Kerf too large ─────────────────────
   const kerf = project.settings.bladeKerf;
   const kerfMM = toMM(kerf, unit);
@@ -192,7 +192,7 @@ export async function analyzeProject(project: Project): Promise<OptimizationInte
       confidenceScore: 0.85,
     }));
   }
-
+ 
   // ── 8. Large quantity identical parts ─────
   const highQtyItems = items.filter(i => i.quantity >= 20);
   if (highQtyItems.length > 0) {
@@ -204,19 +204,19 @@ export async function analyzeProject(project: Project): Promise<OptimizationInte
       confidenceScore: 0.68,
     }));
   }
-
+ 
   // ── Compute confidence score ───────────────
   const criticalCount = suggestions.filter(s => s.severity === 'critical').length;
   const warningCount  = suggestions.filter(s => s.severity === 'warning').length;
   const overallConfidence = result
     ? Math.min(0.99, (result.overallEfficiency / 100) * (1 - criticalCount * 0.1) * (1 - warningCount * 0.05))
     : 0.5;
-
+ 
   const estimatedSaving = suggestions.reduce((s, sg) => s + (sg.estimatedSavingMM2 ?? 0), 0);
   const savingPercent = sheetArea > 0
     ? Math.min(25, (estimatedSaving / (sheetArea * Math.max(result?.totalSheets ?? 1, 1))) * 100)
     : 0;
-
+ 
   return {
     suggestions: suggestions.slice(0, 8), // cap at 8
     confidenceScore: overallConfidence,
@@ -227,12 +227,12 @@ export async function analyzeProject(project: Project): Promise<OptimizationInte
     groupingOpportunities,
   };
 }
-
+ 
 // ─── Find similar parts for grouping ─────────
-
+ 
 function findSimilarParts(items: CuttingItem[], unit: Unit): GroupingOpportunity[] {
   const groups: Map<string, CuttingItem[]> = new Map();
-
+ 
   for (const item of items) {
     const wMM = Math.round(toMM(item.width, unit) / 50) * 50; // bucket to 50mm
     const hMM = Math.round(toMM(item.height, unit) / 50) * 50;
@@ -240,7 +240,7 @@ function findSimilarParts(items: CuttingItem[], unit: Unit): GroupingOpportunity
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key)!.push(item);
   }
-
+ 
   const opportunities: GroupingOpportunity[] = [];
   for (const [key, groupItems] of groups) {
     if (groupItems.length >= 3) {
@@ -252,10 +252,10 @@ function findSimilarParts(items: CuttingItem[], unit: Unit): GroupingOpportunity
       });
     }
   }
-
+ 
   return opportunities;
 }
-
+ 
 function getRecommendedMode(project: Project): string {
   const result = project.optimizationResult;
   if (!result) return 'minimum_wastage';
@@ -263,13 +263,13 @@ function getRecommendedMode(project: Project): string {
   if (result.totalSheets > 8) return 'minimum_cuts';
   return 'minimum_wastage';
 }
-
+ 
 // ─── Suggestion factory ───────────────────────
-
+ 
 function makeSuggestion(fields: Omit<AISuggestion, 'id' | 'dismissed'>): AISuggestion {
   return { id: generateId(), dismissed: false, ...fields };
 }
-
+ 
 function emptyIntelligence(ms: number): OptimizationIntelligence {
   return {
     suggestions: [],
@@ -281,11 +281,11 @@ function emptyIntelligence(ms: number): OptimizationIntelligence {
     groupingOpportunities: [],
   };
 }
-
+ 
 // ─── Future AI API integration hook ──────────
 // Replace this function body with an API call to OpenAI/Claude/Gemini
 // when ready. All callers remain unchanged.
-
+ 
 export async function analyzeWithExternalAI(
   _projectJson: string,
   _provider: 'openai' | 'claude' | 'gemini' = 'claude'
