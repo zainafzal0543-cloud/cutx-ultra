@@ -112,12 +112,10 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react', 'framer-motion'],
   },
-};const nextConfig = {
-  // Baki saari settings jo pehle se hain unko rehne do...
   eslint: {
     // Yeh Next.js ko production build ke dauran ESLint errors ignore karne deta hai
     ignoreDuringBuilds: true,
   },
-}
+};
 
 module.exports = withPWA(nextConfig);
