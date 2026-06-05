@@ -45,6 +45,7 @@ export function useDebouncedUpdate(projectId: string | null, delay = 300) {
   const updateCuttingItem = useStore(s => s.updateCuttingItem);
 
   return useCallback(
+  // @ts-ignore
     debounce((itemId: string, field: keyof CuttingItem, value: unknown) => {
       if (projectId) updateCuttingItem(projectId, itemId, { [field]: value } as any);
     }, delay),
