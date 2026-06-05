@@ -7,7 +7,7 @@ import { useStore } from '@/store';
 import { computeGlobalAnalytics } from '@/lib/analytics/engine';
 import type { GlobalAnalytics } from '@/types/phase2';
 import { MATERIAL_LABELS } from '@/lib/utils/presets';
-import { formatArea, formatPercent } from '@/lib/utils/units';
+import { formatArea } from '@/lib/utils/units';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
