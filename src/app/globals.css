@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── CSS Variables ────────────────────────── */
+:root {
+  --font-display: 'DM Sans', system-ui, sans-serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'DM Mono', monospace;
+}
+
+/* ─── Base Reset ───────────────────────────── */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  overscroll-behavior: none;
+}
+
+/* ─── Scrollbar Styling ─────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #E5E5EA;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #AEAEB2;
+}
+
+/* ─── Focus Styles ──────────────────────────── */
+:focus-visible {
+  outline: 2px solid #000000;
+  outline-offset: 2px;
+}
+
+/* ─── Shimmer Animation ─────────────────────── */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    #F5F5F7 0%,
+    #EBEBED 50%,
+    #F5F5F7 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ─── Premium Input Style ───────────────────── */
+.input-borderless {
+  @apply bg-transparent border-0 border-b border-border focus:border-text-primary outline-none transition-colors duration-200 w-full py-2 text-text-primary placeholder:text-text-tertiary;
+}
+
+.input-ghost {
+  @apply bg-transparent border border-transparent hover:border-border focus:border-text-secondary rounded-lg outline-none transition-all duration-200 px-3 py-2 text-text-primary placeholder:text-text-tertiary w-full;
+}
+
+/* ─── Table Cell Input ──────────────────────── */
+.table-cell-input {
+  @apply bg-transparent border-0 outline-none w-full text-text-primary placeholder:text-text-tertiary text-sm py-0 px-0 focus:bg-blue-50/50 rounded;
+}
+
+/* ─── No select ─────────────────────────────── */
+.no-select {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ─── Canvas container ──────────────────────── */
+.canvas-container {
+  background-image: radial-gradient(circle, #E5E5EA 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ─── Metric Card ───────────────────────────── */
+.metric-bar {
+  @apply h-1.5 rounded-full bg-border overflow-hidden;
+}
+
+.metric-bar-fill {
+  @apply h-full rounded-full transition-all duration-700 ease-out;
+}
+
+/* ─── Tag pill ──────────────────────────────── */
+.tag-pill {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-border/60 text-text-secondary;
+}
+
+/* ─── Section divider ───────────────────────── */
+.section-label {
+  @apply text-[10px] font-semibold tracking-[0.12em] uppercase text-text-tertiary;
+}
+
+/* ─── No scrollbar utility ──────────────────── */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ─── Mobile safe area ──────────────────────── */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .mobile-safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+}
