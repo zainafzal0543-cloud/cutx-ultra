@@ -10,6 +10,7 @@ import type {
   GroupingOpportunity, SuggestionCategory,
 } from '@/types/phase3';
 import { toMM } from '@/lib/utils/units';
+import { Unit } from '@/types';
 import { generateId } from '@/lib/utils';
 import { SHEET_PRESETS } from '@/lib/utils/presets';
  
